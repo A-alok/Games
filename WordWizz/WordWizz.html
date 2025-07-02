@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WordWizz - Word Guessing Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="WordWizz.css">
+</head>
+<body>
+  <!-- Floating particles background -->
+  <div class="particles-container" id="particles"></div>
+  
+  <!-- Category Selection Screen -->
+  <div class="category-screen" id="categoryScreen">
+      <header>
+          <h1 class="logo">Word<span class="highlight">Wizz</span></h1>
+          <p class="subtitle">Choose your challenge and become a word wizard!</p>
+      </header>
+      
+      <div class="main-buttons">
+          <button class="instruction-btn" id="instructionBtn">
+              <span class="btn-icon">📖</span>
+              How to Play
+          </button>
+      </div>
+      
+      <div class="category-grid">
+          <div class="category-card" data-category="random">
+              <div class="category-icon">🎲</div>
+              <h3>Random Words</h3>
+              <p>5 letters • Fresh from API</p>
+              <div class="category-stats-preview" id="randomStats">
+                  <span class="wins">0 wins</span> • <span class="played">0 played</span>
+              </div>
+          </div>
+          <div class="category-card" data-category="fruits">
+              <div class="category-icon">🍎</div>
+              <h3>Fruits</h3>
+              <p>3-8 letters • Sweet challenges</p>
+              <div class="category-stats-preview" id="fruitsStats">
+                  <span class="wins">0 wins</span> • <span class="played">0 played</span>
+              </div>
+          </div>
+          <div class="category-card" data-category="vegetables">
+              <div class="category-icon">🥕</div>
+              <h3>Vegetables</h3>
+              <p>3-11 letters • Healthy choices</p>
+              <div class="category-stats-preview" id="vegetablesStats">
+                  <span class="wins">0 wins</span> • <span class="played">0 played</span>
+              </div>
+          </div>
+          <div class="category-card" data-category="animals">
+              <div class="category-icon">🦁</div>
+              <h3>Animals</h3>
+              <p>3-9 letters • Wild adventures</p>
+              <div class="category-stats-preview" id="animalsStats">
+                  <span class="wins">0 wins</span> • <span class="played">0 played</span>
+              </div>
+          </div>
+      </div>
+      
+      <div class="stats-preview">
+          <h3>Overall Statistics</h3>
+          <div class="stats-grid">
+              <div class="stat-item">
+                  <span class="stat-number" id="totalGames">0</span>
+                  <span class="stat-label">Played</span>
+              </div>
+              <div class="stat-item">
+                  <span class="stat-number" id="winPercentage">0</span>
+                  <span class="stat-label">Win %</span>
+              </div>
+              <div class="stat-item">
+                  <span class="stat-number" id="currentStreak">0</span>
+                  <span class="stat-label">Current Streak</span>
+              </div>
+              <div class="stat-item">
+                  <span class="stat-number" id="bestStreak">0</span>
+                  <span class="stat-label">Best Streak</span>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="game-screen hidden" id="gameScreen">
+      <div class="game-header">
+          <button class="back-btn" id="backBtn">
+              <span class="btn-icon">←</span>
+              Categories
+          </button>
+          <div class="category-info">
+              <span class="category-name" id="categoryName">Random Words</span>
+              <span class="word-info" id="wordInfo">5 letters</span>
+          </div>
+          <button class="stats-btn" id="statsBtn">
+              <span class="btn-icon">📊</span>
+              Stats
+          </button>
+      </div>
+
+      <div class="game-container">
+          <div class="game-grid" id="gameGrid">
+              <!-- Dynamic grid will be generated here -->
+          </div>
+
+          <div class="keyboard" id="keyboard">
+              <div class="keyboard-row">
+                  <button class="key" data-key="Q">Q</button>
+                  <button class="key" data-key="W">W</button>
+                  <button class="key" data-key="E">E</button>
+                  <button class="key" data-key="R">R</button>
+                  <button class="key" data-key="T">T</button>
+                  <button class="key" data-key="Y">Y</button>
+                  <button class="key" data-key="U">U</button>
+                  <button class="key" data-key="I">I</button>
+                  <button class="key" data-key="O">O</button>
+                  <button class="key" data-key="P">P</button>
+              </div>
+              <div class="keyboard-row">
+                  <button class="key" data-key="A">A</button>
+                  <button class="key" data-key="S">S</button>
+                  <button class="key" data-key="D">D</button>
+                  <button class="key" data-key="F">F</button>
+                  <button class="key" data-key="G">G</button>
+                  <button class="key" data-key="H">H</button>
+                  <button class="key" data-key="J">J</button>
+                  <button class="key" data-key="K">K</button>
+                  <button class="key" data-key="L">L</button>
+              </div>
+              <div class="keyboard-row">
+                  <button class="key key-large" data-key="ENTER">ENTER</button>
+                  <button class="key" data-key="Z">Z</button>
+                  <button class="key" data-key="X">X</button>
+                  <button class="key" data-key="C">C</button>
+                  <button class="key" data-key="V">V</button>
+                  <button class="key" data-key="B">B</button>
+                  <button class="key" data-key="N">N</button>
+                  <button class="key" data-key="M">M</button>
+                  <button class="key key-large" data-key="BACKSPACE">⌫</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Instructions Modal -->
+  <div class="modal-overlay" id="instructionsModal">
+      <div class="modal instructions-modal">
+          <div class="modal-content">
+              <div class="instructions-header">
+                  <div class="instruction-badge">
+                      <span class="badge-icon">ℹ️</span>
+                      INSTRUCTIONS
+                  </div>
+                  <button class="close-btn" id="closeInstructionsBtn">×</button>
+              </div>
+              
+              <h2>Hey Genius!!</h2>
+              
+              <div class="instructions-content">
+                  <div class="instruction-section">
+                      <p>Number of rows will represent number of attempts you have, and columns will represent the length of the word.</p>
+                      <ul>
+                          <li>The game contains 5 rows (attempts).</li>
+                          <li>Input will be taken in horizontal manner only.</li>
+                      </ul>
+                  </div>
+                  
+                  <div class="instruction-section">
+                      <h4>Theme-Based Mode:</h4>
+                      <p>If you choose this option, all words you need to guess will relate to a specific theme.</p>
+                  </div>
+                  
+                  <div class="instruction-section">
+                      <p>Your goal is to guess the words based on the provided grid. Good luck!</p>
+                  </div>
+                  
+                  <div class="color-examples">
+                      <div class="example-row">
+                          <div class="example-tiles">
+                              <div class="example-tile">A</div>
+                              <div class="example-tile">I</div>
+                              <div class="example-tile">D</div>
+                              <div class="example-tile correct">E</div>
+                              <div class="example-tile">D</div>
+                          </div>
+                          <p>The letter <strong>E</strong> is in the word and in the correct spot.</p>
+                      </div>
+                      
+                      <div class="example-row">
+                          <div class="example-tiles">
+                              <div class="example-tile">A</div>
+                              <div class="example-tile">P</div>
+                              <div class="example-tile">P</div>
+                              <div class="example-tile">L</div>
+                              <div class="example-tile present">E</div>
+                          </div>
+                          <p>The letter <strong>E</strong> is in the word but in the wrong spot.</p>
+                      </div>
+                      
+                      <div class="example-row">
+                          <div class="example-tiles">
+                              <div class="example-tile">B</div>
+                              <div class="example-tile">R</div>
+                              <div class="example-tile">I</div>
+                              <div class="example-tile">C</div>
+                              <div class="example-tile">K</div>
+                          </div>
+                          <p>The letter does not appear in the word in any position.</p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal game-over-modal">
+        <div class="modal-content">
+            <div class="celebration-animation" id="celebrationAnimation"></div>
+            <div class="game-result-icon" id="gameResultIcon">🎉</div>
+            <h2 id="modalTitle">Congratulations!</h2>
+            
+            <div class="correct-word-display">
+                <p style="margin: 0; font-size: 1rem; opacity: 0.9;">The word was:</p>
+                <div id="correctWord">APPLE</div>
+            </div>
+            
+            <div class="game-over-stats">
+                <h3>Your Game Stats</h3>
+                <div class="stats-grid-simple">
+                    <div class="stat-item-simple">
+                        <span class="stat-label-simple">Total Played</span>
+                        <span class="stat-value-simple" id="gameOverTotalPlayed">0</span>
+                    </div>
+                    <div class="stat-item-simple">
+                        <span class="stat-label-simple">Total Wins</span>
+                        <span class="stat-value-simple" id="gameOverTotalWins">0</span>
+                    </div>
+                    <div class="stat-item-simple">
+                        <span class="stat-label-simple">Current Streak</span>
+                        <span class="stat-value-simple" id="gameOverCurrentStreak">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="playAgainBtn">
+                    <span class="btn-icon">🔄</span>
+                    Play Again
+                </button>
+                <button class="btn btn-secondary" id="mainMenuBtn">
+                    <span class="btn-icon">🏠</span>
+                    Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <!-- Detailed Stats Modal -->
+  <div class="modal-overlay" id="statsModal">
+      <div class="modal stats-modal">
+          <div class="modal-content">
+              <div class="stats-header">
+                  <h2>📊 Detailed Statistics</h2>
+                  <button class="close-btn" id="closeStatsBtn">×</button>
+              </div>
+              <div id="detailedStats">
+                  <!-- Stats content will be generated here -->
+              </div>
+              <div class="modal-buttons">
+                  <button class="btn btn-secondary" id="resetStatsBtn">
+                      <span class="btn-icon">🗑️</span>
+                      Reset Stats
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <script src="WordWizz.js"></script>
+</body>
+</html>

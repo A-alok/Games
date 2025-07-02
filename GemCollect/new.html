@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Stealth Game - Gem Collector</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .hud {
+            display: flex;
+            gap: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .lives {
+            color: #ff4757;
+        }
+        
+        .gems {
+            color: #2ed573;
+        }
+        
+        .timer {
+            color: #ffa502;
+        }
+        
+        .difficulty {
+            color: #3742fa;
+        }
+        
+        .bots {
+            color: #e17055;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+            background: #2c3e50;
+        }
+        
+        .controls {
+            font-size: 14px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .menu-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 24px;
+            border: 2px solid #fff;
+            z-index: 10;
+        }
+        
+        .difficulty-btn {
+            display: block;
+            margin: 15px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #3742fa;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            width: 250px;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #2f32ca;
+            transform: scale(1.05);
+        }
+        
+        .easy { background: #2ed573; }
+        .easy:hover { background: #27ae60; }
+        
+        .medium { background: #ffa502; }
+        .medium:hover { background: #ff7675; }
+        
+        .hard { background: #ff4757; }
+        .hard:hover { background: #d63031; }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 24px;
+            border: 2px solid #fff;
+            display: none;
+            z-index: 10;
+        }
+        
+        .restart-btn {
+            margin: 10px;
+            padding: 12px 25px;
+            font-size: 16px;
+            background: #3742fa;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        .restart-btn:hover {
+            background: #2f32ca;
+        }
+        
+        .share-btn {
+            background: #2ed573;
+        }
+        
+        .share-btn:hover {
+            background: #27ae60;
+        }
+        
+        .record-info {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #ffa502;
+        }
+        
+        .difficulty-info {
+            font-size: 16px;
+            margin: 20px 0;
+            opacity: 0.8;
+        }
+        
+        .leaderboard {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="hud">
+            <div class="lives">❤️ Lives: <span id="livesCount">3</span></div>
+            <div class="gems">💎 Gems: <span id="gemsCount">0</span>/<span id="totalGems">8</span></div>
+            <div class="timer">⏱️ Time: <span id="timeCount">0:00</span></div>
+            <div class="difficulty">🎯 <span id="difficultyDisplay">Easy</span></div>
+            <div class="bots">🤖 Bots: <span id="botCount">2</span></div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            Use WASD or Arrow Keys to move • Avoid ALL red vision cones • Collect all gems to win!<br>
+            🗺️ Each game generates a new random map layout!
+        </div>
+    </div>
+    
+    <div class="menu-screen" id="difficultyMenu">
+        <h2>🎮 Stealth Gem Collector</h2>
+        <div class="difficulty-info">
+            <p><strong>Easy:</strong> 2 Slow Bots, Simple Layout</p>
+            <p><strong>Medium:</strong> 4 Normal Bots, Complex Layout</p>
+            <p><strong>Hard:</strong> 6 Fast Bots, Maze-like Layout</p>
+            <p style="color: #74b9ff; margin-top: 15px;"><em>🗺️ New random map every game!</em></p>
+        </div>
+        <button class="difficulty-btn easy" onclick="startGame('easy')">🟢 Easy Mode (2 Bots)</button>
+        <button class="difficulty-btn medium" onclick="startGame('medium')">🟡 Medium Mode (4 Bots)</button>
+        <button class="difficulty-btn hard" onclick="startGame('hard')">🔴 Hard Mode (6 Bots)</button>
+        
+        <div class="leaderboard" id="leaderboard">
+            <h3>🏆 Your Best Times:</h3>
+            <div id="recordsList"></div>
+        </div>
+    </div>
+    
+    <div class="game-over" id="gameOverScreen">
+        <div id="gameOverText">Game Over!</div>
+        <div class="record-info" id="recordInfo"></div>
+        <button class="restart-btn" onclick="showDifficultyMenu()">Choose Difficulty</button>
+        <button class="restart-btn share-btn" onclick="shareRecord()" id="shareBtn" style="display:none;">📤 Share Record</button>
+    </div>
+
+    <script>
+        let currentDifficulty = 'easy';
+        let gameStartTime = 0;
+        let gameEndTime = 0;
+        let gameTimer = 0;
+        let timerInterval;
+        
+        // Game state
+        let gameState = {
+            lives: 3,
+            gemsCollected: 0,
+            totalGems: 8,
+            gameRunning: false,
+            gameWon: false
+        };
+        
+        // Player object
+        const player = {
+            x: 50,
+            y: 50,
+            size: 20,
+            speed: 3,
+            color: '#3742fa',
+            angle: 0
+        };
+        
+        // Game objects
+        let bots = [];
+        let obstacles = [];
+        let gems = [];
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Difficulty configurations
+        const difficultySettings = {
+            easy: {
+                botSpeed: 1.2,
+                botCount: 2,
+                visionRange: 100,
+                visionAngle: Math.PI / 4,
+                obstacleComplexity: 'simple'
+            },
+            medium: {
+                botSpeed: 1.8,
+                botCount: 4,
+                visionRange: 130,
+                visionAngle: Math.PI / 3,
+                obstacleComplexity: 'medium'
+            },
+            hard: {
+                botSpeed: 2.5,
+                botCount: 6,
+                visionRange: 150,
+                visionAngle: Math.PI / 2.2,
+                obstacleComplexity: 'complex'
+            }
+        };
+        
+        // Map generation functions
+        function generateRandomMap(complexity) {
+            obstacles = [];
+            
+            // Create rooms and corridors system
+            const rooms = [];
+            const corridors = [];
+            
+            if (complexity === 'simple') {
+                // Simple layout with few obstacles
+                rooms.push(
+                    {x: 150, y: 100, width: 200, height: 150},
+                    {x: 450, y: 250, width: 180, height: 120},
+                    {x: 200, y: 350, width: 150, height: 100}
+                );
+                
+                // Add some connecting walls
+                obstacles.push(
+                    {x: 100, y: 200, width: 20, height: 100},
+                    {x: 400, y: 150, width: 20, height: 150},
+                    {x: 250, y: 300, width: 150, height: 20},
+                    {x: 550, y: 100, width: 100, height: 20},
+                    {x: 600, y: 400, width: 20, height: 120}
+                );
+                
+            } else if (complexity === 'medium') {
+                // More complex layout
+                rooms.push(
+                    {x: 100, y: 80, width: 150, height: 120},
+                    {x: 300, y: 150, width: 120, height: 100},
+                    {x: 500, y: 200, width: 160, height: 140},
+                    {x: 150, y: 350, width: 180, height: 100},
+                    {x: 450, y: 450, width: 140, height: 80}
+                );
+                
+                // Create maze-like structure
+                obstacles.push(
+                    {x: 80, y: 250, width: 20, height: 150},
+                    {x: 200, y: 120, width: 80, height: 20},
+                    {x: 350, y: 80, width: 20, height: 180},
+                    {x: 450, y: 180, width: 20, height: 120},
+                    {x: 280, y: 300, width: 140, height: 20},
+                    {x: 550, y: 100, width: 20, height: 180},
+                    {x: 100, y: 480, width: 200, height: 20},
+                    {x: 400, y: 350, width: 20, height: 100},
+                    {x: 680, y: 250, width: 20, height: 200}
+                );
+                
+            } else { // complex
+                // Maze-like layout with many obstacles
+                rooms.push(
+                    {x: 80, y: 60, width: 120, height: 100},
+                    {x: 250, y: 120, width: 100, height: 80},
+                    {x: 400, y: 180, width: 140, height: 120},
+                    {x: 120, y: 280, width: 160, height: 100},
+                    {x: 350, y: 400, width: 120, height: 80},
+                    {x: 550, y: 350, width: 100, height: 120},
+                    {x: 600, y: 100, width: 120, height: 150}
+                );
+                
+                // Dense maze structure
+                obstacles.push(
+                    {x: 60, y: 200, width: 20, height: 120},
+                    {x: 150, y: 180, width: 80, height: 20},
+                    {x: 280, y: 80, width: 20, height: 150},
+                    {x: 350, y: 160, width: 20, height: 100},
+                    {x: 450, y: 140, width: 20, height: 120},
+                    {x: 200, y: 240, width: 120, height: 20},
+                    {x: 380, y: 320, width: 100, height: 20},
+                    {x: 520, y: 180, width: 20, height: 140},
+                    {x: 100, y: 420, width: 180, height: 20},
+                    {x: 320, y: 480, width: 20, height: 80},
+                    {x: 480, y: 300, width: 20, height: 120},
+                    {x: 580, y: 280, width: 80, height: 20},
+                    {x: 680, y: 200, width: 20, height: 180},
+                    {x: 40, y: 350, width: 100, height: 20},
+                    {x: 220, y: 500, width: 200, height: 20},
+                    {x: 500, y: 480, width: 20, height: 80}
+                );
+            }
+            
+            // Ensure player spawn area is clear
+            obstacles = obstacles.filter(obs => 
+                !(obs.x < 100 && obs.x + obs.width > 30 && obs.y < 100 && obs.y + obs.height > 30)
+            );
+        }
+        
+        function generateRandomGems() {
+            gems = [];
+            const gemCount = gameState.totalGems;
+            let attempts = 0;
+            
+            while (gems.length < gemCount && attempts < 100) {
+                const x = Math.random() * (canvas.width - 100) + 50;
+                const y = Math.random() * (canvas.height - 100) + 50;
+                
+                // Check if position is valid (not in obstacles, not too close to player spawn)
+                let validPosition = true;
+                
+                // Check distance from player spawn
+                if (distance(x, y, 50, 50) < 80) {
+                    validPosition = false;
+                }
+                
+                // Check collision with obstacles
+                for (let obstacle of obstacles) {
+                    if (x > obstacle.x - 30 && x < obstacle.x + obstacle.width + 30 &&
+                        y > obstacle.y - 30 && y < obstacle.y + obstacle.height + 30) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                // Check distance from other gems
+                for (let gem of gems) {
+                    if (distance(x, y, gem.x, gem.y) < 60) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                if (validPosition) {
+                    gems.push({x: x, y: y, collected: false});
+                }
+                
+                attempts++;
+            }
+            
+            // If we couldn't place all gems randomly, place remaining in safe spots
+            while (gems.length < gemCount) {
+                const safeSpots = [
+                    {x: 700, y: 50}, {x: 50, y: 500}, {x: 700, y: 500},
+                    {x: 350, y: 50}, {x: 50, y: 300}, {x: 700, y: 300}
+                ];
+                
+                for (let spot of safeSpots) {
+                    if (gems.length >= gemCount) break;
+                    
+                    let tooClose = false;
+                    for (let gem of gems) {
+                        if (distance(spot.x, spot.y, gem.x, gem.y) < 60) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tooClose) {
+                        gems.push({x: spot.x, y: spot.y, collected: false});
+                    }
+                }
+                break;
+            }
+        }
+        
+        function generateRandomBots(count, settings) {
+            bots = [];
+            let attempts = 0;
+            
+            while (bots.length < count && attempts < 100) {
+                const x = Math.random() * (canvas.width - 200) + 100;
+                const y = Math.random() * (canvas.height - 200) + 100;
+                
+                // Check if position is valid
+                let validPosition = true;
+                
+                // Check distance from player spawn
+                if (distance(x, y, 50, 50) < 150) {
+                    validPosition = false;
+                }
+                
+                // Check collision with obstacles
+                for (let obstacle of obstacles) {
+                    if (x > obstacle.x - 50 && x < obstacle.x + obstacle.width + 50 &&
+                        y > obstacle.y - 50 && y < obstacle.y + obstacle.height + 50) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                // Check distance from other bots
+                for (let bot of bots) {
+                    if (distance(x, y, bot.x, bot.y) < 100) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                if (validPosition) {
+                    const botColors = ['#ff4757', '#e74c3c', '#c0392b', '#a83b32', '#922b21', '#7b241c'];
+                    bots.push({
+                        x: x,
+                        y: y,
+                        size: 25,
+                        speed: settings.botSpeed,
+                        color: botColors[bots.length % botColors.length],
+                        angle: Math.random() * Math.PI * 2,
+                        visionAngle: settings.visionAngle,
+                        visionRange: settings.visionRange,
+                        targetX: x,
+                        targetY: y,
+                        changeDirectionTimer: Math.random() * 60,
+                        chasing: false,
+                        lastPlayerX: 0,
+                        lastPlayerY: 0,
+                        id: bots.length
+                    });
+                }
+                
+                attempts++;
+            }
+        }
+        
+        // Initialize level based on difficulty
+        function initializeLevel(difficulty) {
+            const settings = difficultySettings[difficulty];
+            
+            // Generate random map
+            generateRandomMap(settings.obstacleComplexity);
+            
+            // Generate random gem positions
+            generateRandomGems();
+            
+            // Generate random bot positions
+            generateRandomBots(settings.botCount, settings);
+            
+            // Update bot count display
+            document.getElementById('botCount').textContent = settings.botCount;
+        }
+        
+        // Records system (unchanged)
+        function getRecords() {
+            const records = JSON.parse(sessionStorage.getItem('stealthGameRecords') || '{}');
+            return records;
+        }
+        
+        function saveRecord(difficulty, time) {
+            const records = getRecords();
+            if (!records[difficulty] || time < records[difficulty]) {
+                records[difficulty] = time;
+                sessionStorage.setItem('stealthGameRecords', JSON.stringify(records));
+                return true;
+            }
+            return false;
+        }
+        
+        function updateLeaderboard() {
+            const records = getRecords();
+            const recordsList = document.getElementById('recordsList');
+            
+            let html = '';
+            ['easy', 'medium', 'hard'].forEach(diff => {
+                if (records[diff]) {
+                    const time = formatTime(records[diff]);
+                    html += `<div>${diff.toUpperCase()}: ${time}</div>`;
+                }
+            });
+            
+            if (html === '') {
+                html = '<div>No records yet!</div>';
+            }
+            
+            recordsList.innerHTML = html;
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = (seconds % 60).toFixed(1);
+            return `${mins}:${secs.padStart(4, '0')}`;
+        }
+        
+        function updateTimer() {
+            if (gameState.gameRunning) {
+                gameTimer = (Date.now() - gameStartTime) / 1000;
+                document.getElementById('timeCount').textContent = formatTime(gameTimer);
+            }
+        }
+        
+        function startGame(difficulty) {
+            currentDifficulty = difficulty;
+            document.getElementById('difficultyMenu').style.display = 'none';
+            document.getElementById('difficultyDisplay').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+            
+            // Reset game state
+            gameState = {
+                lives: 3,
+                gemsCollected: 0,
+                totalGems: 8,
+                gameRunning: true,
+                gameWon: false
+            };
+            
+            // Reset player
+            player.x = 50;
+            player.y = 50;
+            player.angle = 0;
+            
+            // Initialize level with new random layout
+            initializeLevel(difficulty);
+            
+            // Start timer
+            gameStartTime = Date.now();
+            gameTimer = 0;
+            timerInterval = setInterval(updateTimer, 100);
+        }
+        
+        function showDifficultyMenu() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('difficultyMenu').style.display = 'block';
+            updateLeaderboard();
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+        
+        function shareRecord() {
+            const records = getRecords();
+            let shareText = "🎮 My Stealth Game Records:\n\n";
+            
+            ['easy', 'medium', 'hard'].forEach(diff => {
+                if (records[diff]) {
+                    shareText += `${diff.toUpperCase()}: ${formatTime(records[diff])}\n`;
+                }
+            });
+            
+            shareText += "\nCan you beat my time? Play Stealth Gem Collector!";
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Stealth Game Records',
+                    text: shareText
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Records copied to clipboard! Share with your friends!');
+                });
+            }
+        }
+        
+        // Input handling
+        const keys = {};
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Utility functions
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        }
+        
+        function angleBetween(x1, y1, x2, y2) {
+            return Math.atan2(y2 - y1, x2 - x1);
+        }
+        
+        function normalizeAngle(angle) {
+            while (angle > Math.PI) angle -= 2 * Math.PI;
+            while (angle < -Math.PI) angle += 2 * Math.PI;
+            return angle;
+        }
+        
+        function lineIntersectsRect(x1, y1, x2, y2, rect) {
+            const left = rect.x;
+            const right = rect.x + rect.width;
+            const top = rect.y;
+            const bottom = rect.y + rect.height;
+            
+            return lineIntersectsLine(x1, y1, x2, y2, left, top, right, top) ||
+                   lineIntersectsLine(x1, y1, x2, y2, right, top, right, bottom) ||
+                   lineIntersectsLine(x1, y1, x2, y2, right, bottom, left, bottom) ||
+                   lineIntersectsLine(x1, y1, x2, y2, left, bottom, left, top);
+        }
+        
+        function lineIntersectsLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (denom === 0) return false;
+            
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+            
+            return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+        }
+        
+        function hasLineOfSight(x1, y1, x2, y2) {
+            for (let obstacle of obstacles) {
+                if (lineIntersectsRect(x1, y1, x2, y2, obstacle)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function checkCollision(obj, x, y) {
+            for (let obstacle of obstacles) {
+                if (x < obstacle.x + obstacle.width &&
+                    x + obj.size > obstacle.x &&
+                    y < obstacle.y + obstacle.height &&
+                    y + obj.size > obstacle.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function isPlayerInAnyVisionCone() {
+            for (let bot of bots) {
+                const distToPlayer = distance(bot.x, bot.y, player.x, player.y);
+                const angleToPlayer = angleBetween(bot.x, bot.y, player.x, player.y);
+                const angleDiff = Math.abs(normalizeAngle(angleToPlayer - bot.angle));
+                
+                if (distToPlayer <= bot.visionRange && 
+                    angleDiff <= bot.visionAngle / 2 && 
+                    hasLineOfSight(bot.x, bot.y, player.x, player.y)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Player update
+        function updatePlayer() {
+            if (!gameState.gameRunning) return;
+            
+            let newX = player.x;
+            let newY = player.y;
+            
+            if (keys['w'] || keys['arrowup']) {
+                newY -= player.speed;
+                player.angle = -Math.PI / 2;
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                newY += player.speed;
+                player.angle = Math.PI / 2;
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                newX -= player.speed;
+                player.angle = Math.PI;
+            }
+            if (keys['d'] || keys['arrowright']) {
+                newX += player.speed;
+                player.angle = 0;
+            }
+            
+            // Boundary and collision checking
+            if (newX >= 0 && newX <= canvas.width - player.size && !checkCollision(player, newX, player.y)) {
+                player.x = newX;
+            }
+            if (newY >= 0 && newY <= canvas.height - player.size && !checkCollision(player, player.x, newY)) {
+                player.y = newY;
+            }
+            
+            // Check if player is caught
+            if (isPlayerInAnyVisionCone()) {
+                gameState.lives--;
+                if (gameState.lives <= 0) {
+                    gameState.gameRunning = false;
+                    gameEndTime = Date.now();
+                    const finalTime = (gameEndTime - gameStartTime) / 1000;
+                    clearInterval(timerInterval);
+                    showGameOver("Game Over! You were caught!", finalTime, false);
+                } else {
+                    // Reset player position
+                    player.x = 50;
+                    player.y = 50;
+                    // Reset all bots' chasing state
+                    bots.forEach(bot => {
+                        bot.chasing = false;
+                        bot.changeDirectionTimer = 0;
+                    });
+                }
+            }
+            
+            // Check gem collection
+            gems.forEach(gem => {
+                if (!gem.collected && distance(player.x, player.y, gem.x, gem.y) < 25) {
+                    gem.collected = true;
+                    gameState.gemsCollected++;
+                    
+                    if (gameState.gemsCollected >= gameState.totalGems) {
+                        gameState.gameWon = true;
+                        gameState.gameRunning = false;
+                        gameEndTime = Date.now();
+                        const finalTime = (gameEndTime - gameStartTime) / 1000;
+                        clearInterval(timerInterval);
+                        showGameOver("Victory! All gems collected!", finalTime, true);
+                    }
+                }
+            });
+        }
+        
+        // Bot AI update (enhanced for multiple bots)
+        function updateBots() {
+            if (!gameState.gameRunning) return;
+            
+            bots.forEach(bot => {
+                bot.changeDirectionTimer++;
+                
+                // Check if bot can see player
+                const distToPlayer = distance(bot.x, bot.y, player.x, player.y);
+                const angleToPlayer = angleBetween(bot.x, bot.y, player.x, player.y);
+                const angleDiff = Math.abs(normalizeAngle(angleToPlayer - bot.angle));
+                
+                const canSeePlayer = distToPlayer <= bot.visionRange && 
+                                   angleDiff <= bot.visionAngle / 2 && 
+                                   hasLineOfSight(bot.x, bot.y, player.x, player.y);
+                
+                if (canSeePlayer) {
+                    // Chase mode
+                    bot.chasing = true;
+                    bot.targetX = player.x;
+                    bot.targetY = player.y;
+                    bot.lastPlayerX = player.x;
+                    bot.lastPlayerY = player.y;
+                    bot.changeDirectionTimer = 0;
+                } else if (bot.chasing && bot.changeDirectionTimer < 240) {
+                       // Continue chasing last known position
+                    bot.targetX = bot.lastPlayerX;
+                    bot.targetY = bot.lastPlayerY;
+                } else if (bot.changeDirectionTimer > 120) {
+                    // Random wandering
+                    bot.chasing = false;
+                    bot.targetX = Math.random() * (canvas.width - 100) + 50;
+                    bot.targetY = Math.random() * (canvas.height - 100) + 50;
+                    bot.changeDirectionTimer = 0;
+                }
+                
+                // Move towards target
+                const angleToTarget = angleBetween(bot.x, bot.y, bot.targetX, bot.targetY);
+                const distToTarget = distance(bot.x, bot.y, bot.targetX, bot.targetY);
+                
+                if (distToTarget > 20) {
+                    const newX = bot.x + Math.cos(angleToTarget) * bot.speed;
+                    const newY = bot.y + Math.sin(angleToTarget) * bot.speed;
+                    
+                    if (newX >= 0 && newX <= canvas.width - bot.size && !checkCollision(bot, newX, bot.y)) {
+                        bot.x = newX;
+                    }
+                    if (newY >= 0 && newY <= canvas.height - bot.size && !checkCollision(bot, bot.x, newY)) {
+                        bot.y = newY;
+                    }
+                    
+                    bot.angle = angleToTarget;
+                }
+            });
+        }
+        
+        // Drawing functions
+        function draw3DCharacter(x, y, size, color, angle, isBot = false, botId = 0) {
+            ctx.save();
+            ctx.translate(x + size/2, y + size/2);
+            ctx.rotate(angle);
+            
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size);
+            
+            // Main body (3D effect)
+            const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(0.7, color);
+            gradient.addColorStop(1, '#000');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(-size/2, -size/2, size, size);
+            
+            // Highlights
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillRect(-size/2, -size/2, size/3, size/3);
+            
+            // Direction indicator
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(size/4, -2, size/4, 4);
+            
+            if (isBot) {
+                // Bot antenna
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, -size/2);
+                ctx.lineTo(0, -size);
+                ctx.stroke();
+                
+                ctx.fillStyle = botId === 0 ? '#ff6b7a' : '#fd79a8';
+                ctx.beginPath();
+                ctx.arc(0, -size, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Bot ID
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText((botId + 1).toString(), 0, 4);
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawVisionCones() {
+            if (!gameState.gameRunning) return;
+            
+            bots.forEach((bot, index) => {
+                ctx.save();
+                ctx.translate(bot.x + bot.size/2, bot.y + bot.size/2);
+                
+                // Vision cone
+                const coneColor = index === 0 ? 'rgba(255, 71, 87, 0.2)' : 'rgba(231, 76, 60, 0.2)';
+                ctx.fillStyle = coneColor;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, bot.visionRange, 
+                       bot.angle - bot.visionAngle/2, 
+                       bot.angle + bot.visionAngle/2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Vision cone border
+                const borderColor = index === 0 ? 'rgba(255, 71, 87, 0.4)' : 'rgba(231, 76, 60, 0.4)';
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(bot.angle - bot.visionAngle/2) * bot.visionRange,
+                          Math.sin(bot.angle - bot.visionAngle/2) * bot.visionRange);
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(bot.angle + bot.visionAngle/2) * bot.visionRange,
+                          Math.sin(bot.angle + bot.visionAngle/2) * bot.visionRange);
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+        
+        function render() {
+            // Clear canvas with grid pattern
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw vision cones first (behind everything)
+            drawVisionCones();
+            
+            // Draw obstacles
+            ctx.fillStyle = '#2c3e50';
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 2;
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+            
+            // Draw gems
+            gems.forEach(gem => {
+                if (!gem.collected) {
+                    ctx.save();
+                    ctx.translate(gem.x, gem.y);
+                    ctx.rotate(Date.now() * 0.005);
+                    
+                    // Gem glow
+                    const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 20);
+                    gradient.addColorStop(0, '#2ed573');
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(-20, -20, 40, 40);
+                    
+                    // Gem shape
+                    ctx.fillStyle = '#2ed573';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -10);
+                    ctx.lineTo(8, -5);
+                    ctx.lineTo(8, 5);
+                    ctx.lineTo(0, 10);
+                    ctx.lineTo(-8, 5);
+                    ctx.lineTo(-8, -5);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#27ae60';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                }
+            });
+            
+            // Draw characters
+            draw3DCharacter(player.x, player.y, player.size, player.color, player.angle);
+            bots.forEach((bot, index) => {
+                draw3DCharacter(bot.x, bot.y, bot.size, bot.color, bot.angle, true, index);
+            });
+            
+            // Update HUD
+            document.getElementById('livesCount').textContent = gameState.lives;
+            document.getElementById('gemsCount').textContent = gameState.gemsCollected;
+        }
+        
+        function showGameOver(message, finalTime, isWin) {
+            let recordInfo = '';
+            let newRecord = false;
+            
+            if (isWin) {
+                newRecord = saveRecord(currentDifficulty, finalTime);
+                if (newRecord) {
+                    recordInfo = `🏆 NEW RECORD! Time: ${formatTime(finalTime)}`;
+                } else {
+                    const bestTime = getRecords()[currentDifficulty];
+                    recordInfo = `⏱️ Time: ${formatTime(finalTime)} (Best: ${formatTime(bestTime)})`;
+                }
+                document.getElementById('shareBtn').style.display = 'inline-block';
+            } else {
+                recordInfo = `⏱️ Survived: ${formatTime(finalTime)}`;
+                document.getElementById('shareBtn').style.display = 'none';
+            }
+            
+            document.getElementById('gameOverText').textContent = message;
+            document.getElementById('recordInfo').innerHTML = recordInfo;
+            document.getElementById('gameOverScreen').style.display = 'block';
+        }
+        
+        // Game loop
+        function gameLoop() {
+            updatePlayer();
+            updateBots();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Initialize leaderboard on load
+        updateLeaderboard();
+        
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>

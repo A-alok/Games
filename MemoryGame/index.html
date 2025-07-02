@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryScape - Discover Hidden Pictures</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Dark Background -->
+    <div class="animated-bg">
+        <div class="bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+            <div class="shape shape-6"></div>
+        </div>
+    </div>
+
+    <!-- Floating Dark Particles -->
+    <div id="particles-container"></div>
+
+    <!-- Main Slider Container -->
+    <div class="main-slider" id="mainSlider">
+        <!-- Start Screen -->
+        <section class="start-screen screen" id="startScreen">
+            <div class="start-content">
+                <h1 class="game-title">
+                    <span class="title-icon">🌌</span>
+                    <span class="title-text">MemoryScape</span>
+                </h1>
+                <p class="tagline">Unveil the mysteries hidden within your mind.</p>
+                <button id="startGameBtn" class="start-btn primary">
+                    <span class="btn-icon">▶️</span>
+                    <span class="btn-text">Start Game</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Game Screen -->
+        <section class="game-screen screen" id="gameScreen">
+            <div class="game-container">
+                <!-- Compact Header -->
+                <header class="game-header">
+                    <div class="title-section">
+                        <h1 class="game-title">
+                            <span class="title-icon">🌌</span>
+                            <span class="title-text">MemoryScape</span>
+                        </h1>
+                    </div>
+                    <div class="game-controls">
+                        <div class="difficulty-selector">
+                            <label for="difficulty" class="sr-only">Select Difficulty</label>
+                            <select id="difficulty" class="control-btn select-btn">
+                                <option value="easy">Easy (3x4)</option>
+                                <option value="medium" selected>Medium (4x6)</option>
+                                <option value="hard">Hard (5x8)</option>
+                            </select>
+                        </div>
+                        <button id="soundToggle" class="control-btn sound-btn" aria-label="Toggle Sound">
+                            <span class="btn-icon">🔊</span>
+                        </button>
+                        <button id="musicToggle" class="control-btn music-btn" aria-label="Toggle Music">
+                            <span class="btn-icon">🎵</span>
+                        </button>
+                        <button id="resetGame" class="control-btn reset-btn">
+                            <span class="btn-icon">🔄</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Compact Stats -->
+                <div class="game-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="moveCount">0</span>
+                            <span class="stat-label">Moves</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="matchCount">0</span>
+                            <span class="stat-label">Matches</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="timeCount">0:00</span>
+                            <span class="stat-label">Time</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🖼️</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="revealedCount">0%</span>
+                            <span class="stat-label">Revealed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Area - Optimized for Single Screen -->
+                <div class="game-area">
+                    <div class="picture-container" id="pictureContainer">
+                        <!-- Hidden picture background -->
+                        <div class="hidden-picture" id="hiddenPicture"></div>
+                        
+                        <!-- Game grid overlay -->
+                        <div class="game-grid" id="gameGrid">
+                            <!-- Cards will be generated by JavaScript -->
+                        </div>
+                        
+                        <!-- Reveal overlay for dramatic effect -->
+                        <div class="reveal-overlay" id="revealOverlay"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Victory Screen -->
+        <section class="victory-screen screen" id="victoryScreen">
+            <div class="victory-content">
+                <div class="victory-animation">
+                    <div class="celebration-particles"></div>
+                    <h2 class="victory-title">
+                        <span class="victory-emoji">✨</span>
+                        <span class="victory-text">Victory!</span>
+                        <span class="victory-emoji">✨</span>
+                    </h2>
+                    <p class="victory-subtitle">You unveiled the mystery!</p>
+                    
+                    <!-- Revealed Picture Display -->
+                    <div class="revealed-picture-showcase" id="revealedPictureShowcase">
+                        <div class="picture-frame">
+                            <img src="/placeholder.svg" alt="Discovered Picture" class="discovered-image" id="discoveredImage">
+                            <div class="picture-info">
+                                <div class="picture-title" id="pictureTitle">Mysterious Landscape</div>
+                                <div class="picture-description" id="pictureDescription">A hidden beauty revealed by your sharp memory</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="victory-stats-enhanced">
+                        <div class="victory-stat">
+                            <div class="victory-stat-icon">🎯</div>
+                            <div class="victory-stat-content">
+                                <span class="victory-stat-value" id="finalMoves">0</span>
+                                <span class="victory-stat-label">Moves</span>
+                            </div>
+                        </div>
+                        <div class="victory-stat">
+                            <div class="victory-stat-icon">⏱️</div>
+                            <div class="victory-stat-content">
+                                <span class="victory-stat-value" id="finalTime">0:00</span>
+                                <span class="victory-stat-label">Time</span>
+                            </div>
+                        </div>
+                        <div class="victory-stat">
+                            <div class="victory-stat-icon">⭐</div>
+                            <div class="victory-stat-content">
+                                <span class="victory-stat-value" id="finalRating">★★★</span>
+                                <span class="victory-stat-label">Rating</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="victory-buttons">
+                        <button id="playAgain" class="victory-btn primary">
+                            <span class="btn-icon">🔄</span>
+                            <span class="btn-text">Play Again</span>
+                        </button>
+                        <button id="shareScore" class="victory-btn secondary">
+                            <span class="btn-icon">📱</span>
+                            <span class="btn-text">Share Score</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Audio Elements (Dark Theme) -->
+    <audio id="flipSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav">
+    </audio>
+    
+    <audio id="matchSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav">
+    </audio>
+
+    <audio id="backgroundMusic" preload="auto" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-creepy.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="victoryMusic" preload="auto" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-mysterious.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
